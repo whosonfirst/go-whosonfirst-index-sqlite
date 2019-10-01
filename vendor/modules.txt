@@ -1,0 +1,15 @@
+# github.com/mattn/go-sqlite3 v1.11.0
+github.com/mattn/go-sqlite3
+# github.com/whosonfirst/go-spatialite v0.1.0
+github.com/whosonfirst/go-spatialite
+# github.com/whosonfirst/go-whosonfirst-flags v0.1.0
+github.com/whosonfirst/go-whosonfirst-flags/existential
+github.com/whosonfirst/go-whosonfirst-flags
+# github.com/whosonfirst/go-whosonfirst-index v0.2.0
+github.com/whosonfirst/go-whosonfirst-index
+# github.com/whosonfirst/go-whosonfirst-log v0.1.0
+github.com/whosonfirst/go-whosonfirst-log
+# github.com/whosonfirst/go-whosonfirst-sqlite v0.1.1
+github.com/whosonfirst/go-whosonfirst-sqlite/database
+github.com/whosonfirst/go-whosonfirst-sqlite/utils
+github.com/whosonfirst/go-whosonfirst-sqlite

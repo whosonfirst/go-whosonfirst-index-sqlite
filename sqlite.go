@@ -2,11 +2,13 @@ package sqlite
 
 import (
 	"context"
+	"errors"
 	"database/sql"
 	"github.com/whosonfirst/go-whosonfirst-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
 	"runtime"
+	"strings"
 )
 
 func init() {
@@ -16,13 +18,13 @@ func init() {
 
 type SQLiteDriver struct {
 	index.Driver
-	database sql.DB
-	conn     sql.Conn
+	database *database.SQLiteDatabase
+	conn     *sql.DB
 }
 
 func (d *SQLiteDriver) Open(uri string) error {
 
-	db, err := database.NewDB(path)
+	db, err := database.NewDB(uri)
 
 	if err != nil {
 		return err
