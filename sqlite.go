@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/whosonfirst/go-whosonfirst-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
@@ -12,14 +11,16 @@ import (
 )
 
 func init() {
-	dr := &SQLiteDriver{}
+	dr := NewSQLiteDriver()
 	index.Register("sqlite", dr)
 }
 
 type SQLiteDriver struct {
 	index.Driver
-	database *database.SQLiteDatabase
-	conn     *sql.DB
+}
+
+func NewSQLiteDriver() index.Driver {
+	return &SQLiteDriver{}
 }
 
 func (d *SQLiteDriver) Open(uri string) error {
@@ -61,7 +62,7 @@ func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc,
 
 	// https://github.com/whosonfirst/go-whosonfirst-index/issues/5
 
-	ctx, cancel := context.WithCancel(context.Background())
+	sqlite_ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	cpus := runtime.NumCPU() * 100 // configurable? (20171222/thisisaaronland)
@@ -107,7 +108,7 @@ func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc,
 
 				fh := strings.NewReader(body)
 
-				ctx = index.AssignPathContext(ctx, uri)
+				ctx = index.AssignPathContext(ctx, index.STDIN)
 				err := index_cb(ctx, fh)
 
 				if err != nil {
@@ -115,7 +116,7 @@ func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc,
 				}
 			}
 
-		}(ctx, wofid, body, throttle_ch, error_ch)
+		}(sqlite_ctx, wofid, body, throttle_ch, error_ch)
 
 		select {
 		case e := <-error_ch:

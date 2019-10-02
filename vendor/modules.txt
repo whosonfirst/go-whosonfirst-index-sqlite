@@ -5,7 +5,7 @@ github.com/whosonfirst/go-spatialite
 # github.com/whosonfirst/go-whosonfirst-flags v0.1.0
 github.com/whosonfirst/go-whosonfirst-flags/existential
 github.com/whosonfirst/go-whosonfirst-flags
-# github.com/whosonfirst/go-whosonfirst-index v0.2.0
+# github.com/whosonfirst/go-whosonfirst-index v0.2.2
 github.com/whosonfirst/go-whosonfirst-index
 # github.com/whosonfirst/go-whosonfirst-log v0.1.0
 github.com/whosonfirst/go-whosonfirst-log
