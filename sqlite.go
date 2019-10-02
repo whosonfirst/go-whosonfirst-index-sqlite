@@ -2,8 +2,8 @@ package sqlite
 
 import (
 	"context"
-	"errors"
 	"database/sql"
+	"errors"
 	"github.com/whosonfirst/go-whosonfirst-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
@@ -23,6 +23,11 @@ type SQLiteDriver struct {
 }
 
 func (d *SQLiteDriver) Open(uri string) error {
+	// check SQLite PRAGMAs here
+	return nil
+}
+
+func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc, uri string) error {
 
 	db, err := database.NewDB(uri)
 
@@ -47,16 +52,6 @@ func (d *SQLiteDriver) Open(uri string) error {
 	if !has_table {
 		return errors.New("database is missing a geojson table")
 	}
-
-	d.database = db
-	d.conn = conn
-
-	return nil
-}
-
-func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc, uri string) error {
-
-	conn := d.conn
 
 	rows, err := conn.Query("SELECT id, body FROM geojson")
 
