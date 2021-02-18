@@ -3,7 +3,9 @@ package sqlite
 import (
 	"context"
 	"errors"
-	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-index/v2/emitter"
+	"github.com/whosonfirst/go-whosonfirst-index/v2/filters"
+	"github.com/whosonfirst/go-whosonfirst-index/v2/ioutil"	
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
 	"runtime"
@@ -11,24 +13,31 @@ import (
 )
 
 func init() {
-	dr := NewSQLiteDriver()
-	index.Register("sqlite", dr)
+	ctx := context.Background()
+	emitter.RegisterEmitter(ctx, "sqlite", NewSQLiteEmitter)
 }
 
-type SQLiteDriver struct {
-	index.Driver
+type SQLiteEmitter struct {
+	emitter.Emitter
+	filters filters.Filters
 }
 
-func NewSQLiteDriver() index.Driver {
-	return &SQLiteDriver{}
+func NewSQLiteEmitter(ctx context.Context, uri string) (emitter.Emitter, error) {
+
+	f, err := filters.NewQueryFiltersFromURI(ctx, uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	em := &SQLiteEmitter{
+		filters: f,
+	}
+
+	return em, nil
 }
 
-func (d *SQLiteDriver) Open(uri string) error {
-	// check SQLite PRAGMAs here
-	return nil
-}
-
-func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc, uri string) error {
+func (d *SQLiteEmitter) IndexURI(ctx context.Context, index_cb emitter.EmitterCallbackFunc, uri string) error {
 
 	db, err := database.NewDB(uri)
 
@@ -97,23 +106,53 @@ func (d *SQLiteDriver) IndexURI(ctx context.Context, index_cb index.IndexerFunc,
 			case <-ctx.Done():
 				return
 			default:
+				// pass
+			}
 
-				// uri := fmt.Sprintf("sqlite://%s#geojson:%d", path, wofid)
+			// uri := fmt.Sprintf("sqlite://%s#geojson:%d", path, wofid)
 
-				// see the way we're passing in STDIN and not uri as the path?
-				// that because we call ctx, err := ContextForPath(path) in the
-				// process() method and since uri won't be there nothing will
-				// get indexed - it's not ideal it's just what it is today...
-				// (20171213/thisisaaronland)
+			// see the way we're passing in STDIN and not uri as the path?
+			// that because we call ctx, err := ContextForPath(path) in the
+			// process() method and since uri won't be there nothing will
+			// get indexed - it's not ideal it's just what it is today...
+			// (20171213/thisisaaronland)
 
-				fh := strings.NewReader(body)
+			sr := strings.NewReader(body)
 
-				ctx = index.AssignPathContext(ctx, index.STDIN)
-				err := index_cb(ctx, fh)
+			fh, err := ioutil.NewReadSeekCloser(sr)
+
+			if err != nil {
+				error_ch <- err
+				return
+			}
+
+			if d.filters != nil {
+
+				ok, err := d.filters.Apply(ctx, fh)
 
 				if err != nil {
 					error_ch <- err
+					return
 				}
+
+				if !ok {
+					return
+				}
+
+				_, err = fh.Seek(0, 0)
+
+				if err != nil {
+					error_ch <- err
+					return
+
+				}
+			}
+
+			ctx = emitter.AssignPathContext(ctx, emitter.STDIN)
+			err = index_cb(ctx, fh)
+
+			if err != nil {
+				error_ch <- err
 			}
 
 		}(sqlite_ctx, wofid, body, throttle_ch, error_ch)
