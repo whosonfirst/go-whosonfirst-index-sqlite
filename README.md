@@ -1,7 +1,7 @@
 # go-whosonfirst-index-sqlite
 
-Work in progress.
+## Important
 
-## See also
+This package is no longer maintained.
 
-* https://github.com/whosonfirst/go-whosonfirst-index
+It has been replaced by [whosonfirst/go-whosonfirst-iterate-sqlite](https://github.com/whosonfirst/go-whosonfirst-iterate-sqlite). You should use that instead.
